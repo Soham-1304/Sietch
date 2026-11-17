@@ -21,8 +21,9 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] Custom agent: `sandbox-reviewer`
 - [x] `README.md`, `.gitignore`, `.nvmrc`, `.editorconfig`
 - [x] `docs/build-log.md` started
-- [ ] **You:** reload Kiro, then check that the steering files, hooks, and agent show up in the Kiro panel
-- [ ] **You:** check that `host-guard` really blocks in the IDE: ask Kiro to run `npm publish`. It should be blocked with a reason. (This is Spike 3.)
+- [x] **You:** reload Kiro, then check that the steering files, hooks, and agent show up in the Kiro panel
+- [x] Fix: hooks couldn't find Node (exit 127). Added the `run-node.sh` launcher
+- [x] **Spike 3:** `host-guard` blocks in the IDE. Confirmed: Kiro blocked the command and passed the reason to the agent
 - [ ] **You:** install Node 24 LTS (`brew install node@24`, or `nvm install 24`). Currently installed: 23.8.0
 - [ ] **You:** create a **public** GitHub repo, then push the first commit
 - [ ] Repo About section shows "Apache-2.0" (GitHub detects it automatically)

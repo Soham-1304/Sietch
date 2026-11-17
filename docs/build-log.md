@@ -39,10 +39,19 @@ Sections:
 
 ---
 
+### 2026-11-17 — Spike 3: does a Pre Tool Use hook block in Kiro IDE?
+
+- **The first try failed silently.** The hook command `node host-guard.mjs` exited 127 (`/bin/sh: node: command not found`). Kiro runs hook commands with `/bin/sh` and a minimal PATH, without the shell profile, so Node installed through nvm was invisible. Exit 127 counts as an error, not a block (only exit 2 blocks), so the guard wasn't guarding anything.
+- **Fix:** `.kiro/hooks/scripts/run-node.sh` finds Node itself: PATH first, then nvm (using `.nvmrc`), then Homebrew, Volta, fnm, and asdf. It takes a mode. `closed` blocks if Node can't be found and is used by `host-guard`. `open` only warns and is used by `secret-guard`, so a missing Node can't lock you out of chat.
+- **Verified:** with a completely empty environment (`env -i PATH=`), the launcher found nvm's Node and blocked the unsafe command. All 31 hook cases still pass.
+- **Confirmed in the IDE:** `host-guard` blocked two of my own agent shell commands because their text contained the publish command (one was a test harness, the other a build-log edit). Kiro didn't run them and passed the hook's reason back to the agent. So Pre Tool Use blocking works in Kiro IDE, which App 2 depends on.
+- **Known false positive:** the guard matches the command text anywhere, including inside heredocs and quoted strings. We kept it strict on purpose, because a guard should err on the side of blocking. The workaround is to edit files with Kiro's file tools instead of shell heredocs.
+- **Lesson for App 2 (Agent Guard):** a guard whose runtime is missing must fail closed. The Agent Guard hook will use the same launcher pattern.
+
 ## PBT findings
 
 _None yet._
 
 ## Hook catches
 
-_None yet._
+- **2026-11-17, `host-guard`:** blocked two agent shell commands whose text contained the publish command. Both were false positives (a test harness and a heredoc edit), but they proved that blocking works in the IDE. See the Spike 3 entry.
