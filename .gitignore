@@ -1,0 +1,29 @@
+# IMPORTANT: never ignore .kiro/ or anything inside it. It is part of the hackathon submission.
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Environment and secrets (document variables in .env.example instead)
+.env
+.env.*
+!.env.example
+
+# Runtime data
+*.log
+.cache/
+storage/
+traces/
+
+# Malware samples must never be committed
+**/malware-samples/
+**/malicious-software-packages-dataset/
+
+# OS and editor
+.DS_Store
+.idea/
+*.swp

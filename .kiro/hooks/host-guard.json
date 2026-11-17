@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "host-guard",
+      "description": "Blocks shell commands that break security.md on the host: local npm publish, privileged or host-network Docker, curl | sh, real malware samples on the Mac, and running demo packages outside Docker.",
+      "trigger": "PreToolUse",
+      "matcher": "shell",
+      "action": {
+        "type": "command",
+        "command": "node .kiro/hooks/scripts/host-guard.mjs"
+      },
+      "timeout": 10
+    }
+  ]
+}

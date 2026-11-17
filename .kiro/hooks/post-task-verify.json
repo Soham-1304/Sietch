@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "post-task-verify",
+      "description": "After each spec task: run typecheck and tests for the touched packages, fix failures before moving on, log property-based test findings, and tick the checklist.",
+      "trigger": "PostTaskExec",
+      "action": {
+        "type": "agent",
+        "prompt": "A spec task just finished. Before starting the next task:\n1. Run typecheck and tests for the packages this task touched, using the commands in tech.md. If no scripts exist yet, say so and skip this step.\n2. If anything fails, fix it now. Do not move on with failing checks.\n3. If a property-based test found a counterexample during this task, add a dated entry under 'PBT findings' in docs/build-log.md with the property, the counterexample, and the fix. Keep the counterexample as a regular unit test.\n4. If this task completes an item in docs/checklist.md, tick it."
+      }
+    }
+  ]
+}
