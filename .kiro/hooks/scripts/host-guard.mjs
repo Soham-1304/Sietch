@@ -41,7 +41,9 @@ const RULES = [
     id: "no-unsafe-docker",
     test: (c) =>
       /\bdocker\s+(run|create)\b/.test(c) &&
-      /(--privileged\b|--net(work)?[ =]host\b|(-v|--volume)[ =]\/:|\/var\/run\/docker\.sock|--cap-add[ =](ALL|SYS_ADMIN)\b)/.test(c),
+      /(--privileged\b|--net(work)?[ =]host\b|(-v|--volume)[ =]\/:|\/var\/run\/docker\.sock|--cap-add[ =](ALL|SYS_ADMIN)\b)/.test(
+        c,
+      ),
     reason:
       "This container would get host-level access (privileged mode, host network, a root mount, or the Docker socket). Sandbox containers must follow security.md section 2.",
   },
@@ -63,7 +65,9 @@ const RULES = [
     test: (c) =>
       !runsInsideDocker(c) &&
       (/\b(node|bun|deno|tsx)\s+(\S*\/)?demo\/\S+/.test(c) ||
-        /\b(npm|pnpm|yarn)\s+(i|install|add|ci|rebuild|run|exec)\b.*(@sietch-demo\/|(^|\s|\/)demo\/)/.test(c) ||
+        /\b(npm|pnpm|yarn)\s+(i|install|add|ci|rebuild|run|exec)\b.*(@sietch-demo\/|(^|\s|\/)demo\/)/.test(
+          c,
+        ) ||
         /\bnpx\s+.*@sietch-demo\//.test(c) ||
         /\bcd\s+\S*demo\/\S*\s*(&&|;)\s*(npm|pnpm|yarn|node|npx|bun)\b/.test(c)),
     reason:

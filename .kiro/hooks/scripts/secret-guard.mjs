@@ -36,7 +36,10 @@ const PATTERNS = [
   { name: "Google API key", re: /\bAIza[0-9A-Za-z_-]{35}\b/ },
   { name: "Slack token", re: /\bxox[abprs]-[A-Za-z0-9-]{10,}\b/ },
   { name: "OpenAI-style API key", re: /\bsk-(proj-)?[A-Za-z0-9_-]{32,}\b/ },
-  { name: "database URL with a password", re: /\b(mongodb(\+srv)?|postgres(ql)?|mysql|redis):\/\/[^:\s/@]+:([^@\s]+)@/ },
+  {
+    name: "database URL with a password",
+    re: /\b(mongodb(\+srv)?|postgres(ql)?|mysql|redis):\/\/[^:\s/@]+:([^@\s]+)@/,
+  },
 ];
 
 /** Placeholders people paste on purpose. */

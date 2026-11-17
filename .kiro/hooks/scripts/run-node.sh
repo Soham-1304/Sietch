@@ -6,7 +6,7 @@
 # and a plain `node script.mjs` fails with exit 127. That exit code is an error, not a block,
 # so a guard hook silently stops guarding. This launcher finds node itself.
 #
-# Usage: run-node.sh <closed|open> <script.mjs>
+# Usage: run-node.sh <closed|open> <script.mjs> [args passed to the script...]
 #   closed: if node can't be found, exit 2 (block). Use for guards like host-guard.
 #   open:   if node can't be found, warn on stderr and exit 1 (don't block). Use where
 #           blocking would lock the user out, like a Prompt Submit hook.
@@ -70,4 +70,5 @@ if [ -z "$found" ]; then
   exit 1
 fi
 
-exec "$found" "$script"
+shift 2
+exec "$found" "$script" "$@"

@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": ["**", "!**/dist", "!**/coverage", "!pnpm-lock.yaml", "!**/*.md"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 110
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "style": {
+        "noDefaultExport": "error",
+        "useImportType": "error",
+        "useNodejsImportProtocol": "error"
+      },
+      "suspicious": {
+        "noConsole": "error",
+        "noExplicitAny": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/vitest.config.ts"],
+      "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    },
+    {
+      "includes": [".kiro/hooks/scripts/**"],
+      "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
+    },
+    {
+      "includes": ["base/core/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "process": "base/core is pure. Pass configuration in as arguments.",
+                  "fetch": "base/core is pure. Network access belongs in base/server or base/sandbox.",
+                  "setTimeout": "base/core is pure. Time belongs to the caller.",
+                  "setInterval": "base/core is pure. Time belongs to the caller.",
+                  "Date": "base/core is pure. Inject a clock or pass timestamps in.",
+                  "performance": "base/core is pure. Inject a clock or pass timestamps in.",
+                  "crypto": "base/core is pure. Inject an rng or pass values in.",
+                  "Buffer": "base/core is pure and has no Node.js types. Use Uint8Array."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

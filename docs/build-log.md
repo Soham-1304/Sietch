@@ -48,10 +48,19 @@ Sections:
 - **Known false positive:** the guard matches the command text anywhere, including inside heredocs and quoted strings. We kept it strict on purpose, because a guard should err on the side of blocking. The workaround is to edit files with Kiro's file tools instead of shell heredocs.
 - **Lesson for App 2 (Agent Guard):** a guard whose runtime is missing must fail closed. The Agent Guard hook will use the same launcher pattern.
 
+### 2026-11-17 — Workspace scaffold
+
+- **Checked current versions before writing config,** as `tech.md` requires. Every tool turned out to be a major version newer than the agent remembered: TypeScript 7 (native Go compiler), Vitest 5, pnpm 12, Biome 2.6. Config written from memory would have used removed options, such as pnpm's `onlyBuiltDependencies`, which pnpm 11 replaced with `allowBuilds`. The current versions and their changed options are now recorded in `tech.md`, so later sessions don't repeat the mistake.
+- **pnpm's own supply-chain settings, used on ourselves:** a 1-day minimum release age, `trustPolicy: no-downgrade`, and strict install scripts. The first install pulled 42 packages, none needing an install script, and pnpm reported "Lockfile passes supply-chain policies".
+- **`base/core` purity is enforced by tools, not just by steering.** Its `tsconfig` loads no Node types, so `node:fs` and `process` are type errors, and Biome refuses `Date`, `fetch`, timers, `crypto`, and `Buffer` there. A temporary probe file confirmed both catch violations.
+- **New hook, `check-on-save` (PostFileSave):** typechecks the saved file's package and runs `vitest related`. Failures go back to the agent. Testing it found a bug in `run-node.sh`: it dropped the arguments after the script name, so the hook never received the saved file path and passed every save without checking anything. That was the second time a hook failed open silently. Fixed, then confirmed: a broken file now gives exit 1 with the TypeScript error.
+- Wrote the `rules-engine` spec prompt in `docs/spec-prompts.md`. The raw-log parser was moved out of that spec because its input format depends on Spike 1.
+
 ## PBT findings
 
 _None yet._
 
 ## Hook catches
 
+- **2026-11-17, testing `check-on-save`:** found that the launcher dropped hook arguments, so the hook passed every file without checking. Fixed before it was relied on.
 - **2026-11-17, `host-guard`:** blocked two agent shell commands whose text contained the publish command. Both were false positives (a test harness and a heredoc edit), but they proved that blocking works in the IDE. See the Spike 3 entry.

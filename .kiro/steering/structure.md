@@ -17,8 +17,11 @@ inclusion: always
 │   └── agent-guard/       APP 2: MCP server, Kiro power, hook scripts
 ├── demo/                  harmless worm lookalike, benign samples, seed scripts
 ├── deploy/                production compose, Caddyfile, VM setup script
-└── docs/                  plan, checklist, build log, write-up drafts
+├── docs/                  plan, checklist, build log, write-up drafts
+└── test/                  shared test setup (fast-check seed and run count)
 ```
+
+Workspace packages are created when their spec starts, not before. Each one has `package.json`, `tsconfig.json`, `vitest.config.ts` (named `core`, `sandbox`, and so on), `README.md`, and `src/`. Copy `base/core` as the template.
 
 ## Dependency rules (enforced in review)
 

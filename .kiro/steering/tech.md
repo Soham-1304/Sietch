@@ -40,14 +40,32 @@ One language everywhere: **TypeScript**. Don't introduce Python or another backe
 - Inject time, randomness, and I/O into core logic (for example, pass a `clock` and an `rng`) so it stays testable and deterministic.
 - Keep functions small and pure where possible, especially in `base/core`.
 
+## Tool versions (checked Nov 17, 2026)
+
+TypeScript **7** (the native Go compiler, still run as `tsc`), Vitest **5**, fast-check **4**, Biome **2.6**, pnpm **12** (pinned in `packageManager`). These are newer than most training data. **Check the docs (Context7 or the official site) before using an API or config option you remember from older versions.** For example:
+
+- TypeScript 7 removed `baseUrl` and `moduleResolution: "node"`. `types` now defaults to `[]`.
+- pnpm 11+ replaced `onlyBuiltDependencies` with `allowBuilds` in `pnpm-workspace.yaml`.
+- Biome 2.6 uses `"preset": "recommended"` and also formats Markdown, which we turn off.
+
+## Supply-chain settings (`pnpm-workspace.yaml`)
+
+- `minimumReleaseAge: 1440`: only versions at least 1 day old can be installed.
+- `trustPolicy: no-downgrade`: the install fails if a package's publishing trust drops.
+- `strictDepBuilds: true`: the install fails if a dependency wants an install script that nobody has reviewed. To allow one, add it to `allowBuilds` with a comment explaining why.
+
 ## Commands
 
-Fill this in when the workspace is scaffolded. Until then, there are no runnable scripts.
+Run from the repo root, with Node 24 (`nvm use`).
 
 | Task | Command |
 |---|---|
 | Install | `pnpm install` |
-| Typecheck | _TBD_ |
-| Test (all) | _TBD_ |
-| Test (one package) | _TBD_ |
-| Lint and format | _TBD_ |
+| Typecheck (all) | `pnpm typecheck` |
+| Test (all) | `pnpm test` |
+| Test (one package) | `pnpm vitest run --project core` |
+| Test (watch) | `pnpm test:watch` |
+| Lint | `pnpm lint` |
+| Format and fix | `pnpm format` |
+| Everything | `pnpm check` |
+| Replay a property-test failure | `FC_SEED=<seed> pnpm test` |

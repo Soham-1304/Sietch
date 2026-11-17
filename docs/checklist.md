@@ -24,18 +24,22 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] **You:** reload Kiro, then check that the steering files, hooks, and agent show up in the Kiro panel
 - [x] Fix: hooks couldn't find Node (exit 127). Added the `run-node.sh` launcher
 - [x] **Spike 3:** `host-guard` blocks in the IDE. Confirmed: Kiro blocked the command and passed the reason to the agent
-- [ ] **You:** install Node 24 LTS (`brew install node@24`, or `nvm install 24`). Currently installed: 23.8.0
+- [x] Node 24 LTS installed through nvm (v24.22.3). pnpm 12.21.0 through corepack
+- [ ] **You (optional):** make Node 24 your default with `nvm alias default 24`. Otherwise run `nvm use` in this folder
 - [ ] **You:** create a **public** GitHub repo, then push the first commit
 - [ ] Repo About section shows "Apache-2.0" (GitHub detects it automatically)
 
 ## Phase 0b: Specs and scaffolding (Wed Nov 18)
 
 - [ ] Spec: `rules-engine` (requirements, design, tasks)
-- [ ] Spec: `sandbox-runner`
-- [ ] pnpm workspace scaffold: `base/core`, `base/sandbox`, `base/server`, `base/cli`, `apps/registry-gate`, `apps/agent-guard`
-- [ ] TypeScript, Vitest, fast-check, and Biome configured. Commands filled in `tech.md`
-- [ ] Hook: run the rule fixtures whenever a rule file is saved (§13)
-- [ ] Hook: typecheck and run related tests whenever a `base/**/*.ts` file is saved (§13)
+- [ ] Spec: `sandbox-runner` (after Spike 1)
+- [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts
+- [x] TypeScript 7, Vitest 5, fast-check 4, and Biome 2.6 configured. Commands filled in `tech.md`
+- [x] pnpm supply-chain settings: 1-day minimum release age, trust no-downgrade, strict install scripts
+- [x] `base/core` purity enforced: no Node types, and restricted globals in Biome
+- [x] Hook: `check-on-save` typechecks the package and runs related tests (including rule fixtures) when a `base/` or `apps/` TypeScript file is saved
+- [x] Spec prompts written in `docs/spec-prompts.md`
+- [ ] **You:** run the `rules-engine` spec in a Spec session (prompt in `docs/spec-prompts.md`)
 - [ ] **Spike 1** (§5.2): can we see a detached child process's file reads and network connections from outside the sandbox? Run locally in Docker Desktop first. Confirm on the VM later.
 - [ ] **Spike 2** (§6.1): can Verdaccio plugins hide versions, block tarball downloads, and hold a request while a scan runs?
 - [ ] **Checkpoint G1:** spike results written in the build log

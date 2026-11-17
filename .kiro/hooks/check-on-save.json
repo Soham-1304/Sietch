@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "check-on-save",
+      "description": "When the agent saves a TypeScript file in base/ or apps/, typecheck its package and run the related tests. Failures go back to the agent to fix.",
+      "trigger": "PostFileSave",
+      "matcher": "(^|/)(base|apps)/.+\\.tsx?$",
+      "action": {
+        "type": "command",
+        "command": "/bin/sh .kiro/hooks/scripts/run-node.sh open .kiro/hooks/scripts/check-on-save.mjs {{filePath}}"
+      },
+      "timeout": 120
+    }
+  ]
+}

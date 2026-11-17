@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    // No Node.js types on purpose: base/core must stay pure (no fs, net, process, or timers).
+    // Importing a node: module here is a type error, which enforces structure.md rule 1.
+    "types": []
+  },
+  "include": ["src"]
+}
