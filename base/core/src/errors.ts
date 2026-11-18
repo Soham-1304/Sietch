@@ -13,3 +13,10 @@ export class SietchError extends Error {
     this.code = code;
   }
 }
+
+/** A package name, version, integrity, or ruleset version that can't be used in a cache key. */
+export class InvalidPackageIdentityError extends SietchError {
+  constructor(message: string) {
+    super("INVALID_PACKAGE_IDENTITY", message);
+  }
+}

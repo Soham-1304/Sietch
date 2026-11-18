@@ -268,6 +268,24 @@ The future `trace-normaliser` and `sandbox-runner` specs must guarantee these. T
 4. Paths are absolute and resolved against the cwd or dirfd. Symlink targets are resolved against the link's directory. If a path can't be resolved, the scan fails (ERROR), and the event is never dropped.
 5. Install runs offline against pre-fetched tarballs, so npm itself makes no network requests.
 6. Multi-line secrets, such as SSH keys, are registered as a single-line honeytoken: their base64 body.
+7. The sandbox runner's own processes (the container's init, timers, and the harness wrapper) are left out of the events. Otherwise R10 fires on every scan.
+8. `bodyTruncated` is true whenever the capture sink cut a body short. R13 then flags it.
+9. Symlink and hard link creation is always emitted as a `file_write` event, so later paths can be resolved through it.
+10. The capture sink records DNS (53), HTTP (80), and HTTPS (443). Traffic to it on any other port is flagged by R3.
+
+## Changes after review (2026-11-18)
+
+The security review (`docs/reviews/2026-11-18-rules-engine-security-review.md`) and the blue-team pass (`docs/reviews/2026-11-18-rules-engine-blue-team.md`) changed the design as follows:
+
+| Change | Why |
+|---|---|
+| New module `views.ts`: each path is checked under every name it can be reached by (earlier symlinks and hard links, `..` applied after a link, `/proc/<p>/root`, `/proc/<p>/cwd`). Writes are allowed only if **every** view is allowed. An unresolvable chain is never allowed. | SR-1, SR-2: writes and reads through a symlinked directory or `/proc/self/root` got SAFE. |
+| `programNames()` returns the names of every view, so a symlink can't hide `curl`. A `Map` is used for script lookups. | SR-2, SR-6 |
+| R3 flags connections to the sink on ports it doesn't record. | SR-3 |
+| `MAX_HONEYTOKENS` is 16 (was 64), and all scanned traffic text is capped at 24 MiB. | SR-4 |
+| Environment checks: `nodeModulesDir` strictly inside `projectDir`; `home` and `projectDir` not `/`; temp directories may not contain either. | SR-5 |
+| R13 also fires when a request body was cut off. | BT-20: a truncated body to an allowlisted host got SAFE. |
+| Base64 matching ignores up to 2 characters at each end of a token, because those depend on neighbouring bytes. | Found while testing. Tokens are random, so this isn't a realistic false-positive source. |
 
 ## Error handling
 

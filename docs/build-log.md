@@ -92,8 +92,24 @@ Sections:
   - Naming a syscall that doesn't exist on ARM64 (such as `open`) in the filter stops the sandbox from starting. The runner must pick the list per architecture, and treat a failed start as ERROR.
 - **New requirement found:** gVisor's `execve` trace lines include the environment, so raw trace files hold honeytokens in full. They must stay on the worker and be deleted after normalising.
 
+### 2026-11-18 — rules-engine implemented, reviewed, and hardened
+
+- **All 12 tasks of the `rules-engine` spec are done.** It has 15 source files in `base/core/src` and 197 tests (14 property tests). The repo as a whole has 450 tests.
+- **Both review skills found real bypasses in freshly written code that passed every test.** Each one was confirmed with a probe test through `judge()` before it was fixed:
+  - `/security-review` found 6 issues (`docs/reviews/2026-11-18-rules-engine-security-review.md`). The worst:
+    - **SR-2:** symlink `/tmp/g -> project/.github`, then write `/tmp/g/workflows/x.yml`, got SAFE: a planted workflow, unseen.
+    - **SR-1:** reading `~/.npmrc` as `/proc/self/root/home/dev/.npmrc` got SAFE.
+    - **SR-3:** raw TCP to the sink on an odd port got SAFE.
+  - `/blue-team` found one more (**BT-20**): a token hidden past the sink's body capture limit, sent to an allowlisted host, got SAFE. It also recorded two open items for later specs (R14 tampering with other packages, and sandbox detection) and the README's honest limits.
+- **The fix for SR-1 and SR-2 is a new module, `views.ts`.** It checks every path under every name it can be reached by, walking it the way the kernel does (a link is expanded first, then `..` is applied). A write is allowed only if *every* view is allowed, and an unresolvable chain is never allowed.
+- **Property tests:** 14 properties, each run 5,000 times with 3 seeds. One test-design flaw was caught (seed 7: the look-alike property wrongly expected `a.a` not to match `*.a`). No engine bugs were found by properties this time. The reviews found the logic bugs that a correct-by-construction property set couldn't.
+- **The `host-guard` hook caught the agent once** during this work: a `cd base/core && …` combined with a subshell left the working directory unknown, so the guard blocked it. The command was rewritten with explicit paths.
+- **A lesson for the write-up:** tests written by the same author as the code check the cases that author thought of. The adversarial skills with a "confirm with a probe before you report" rule found what the tests didn't.
+
 ## PBT findings
 
+- **2026-11-18, hosts, "never matches a look-alike" (seed 7):** counterexample `["a","a",true]`. The *test* was wrong: `a.a` is a real subdomain of `*.a`. The property was fixed to compute legitimacy rather than assume it.
+- **2026-11-18, hosts, "matches only equal hosts or proper subdomains" (seed 20261204):** counterexample `["0","0",true]`. `compileAllowlist` refuses all-digit wildcard suffixes on purpose (they could match IPs). The generator was changed to letter-led labels, and the refusal became a unit test.
 - **2026-11-17, host-guard, "publish is blocked however deeply it's wrapped" (seed 20261204):** counterexample `(echo $((npm publish)))`. The parser treated `$((...))` as arithmetic and never analysed its body. Fixed: a body that looks like a command is analysed. Kept as unit tests.
 
 ## Hook catches

@@ -38,7 +38,10 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 
 - [x] Spec: `rules-engine` written in `.kiro/specs/rules-engine/` (20 requirements, 14 correctness properties, 12 tasks)
 - [x] **You:** review the `rules-engine` requirements and design, then approve or ask for changes (approved Nov 18)
-- [ ] Implement the `rules-engine` tasks (`tasks.md`, one at a time)
+- [x] Implement the `rules-engine` tasks (all 12 done, Nov 18)
+- [x] `/security-review` of the rules engine: 2 High, 2 Medium, 2 Low found and fixed (`docs/reviews/`)
+- [x] `/blue-team` pass: 11 new threat cards, 1 more bypass fixed (truncated bodies), 2 open items moved to later specs
+- [ ] **You (recommended):** run `/security-review` on `base/core/src` in a **new session**, as an independent second review
 - [ ] Spec: `trace-normaliser` (gVisor strace lines to events; possible now that Spike 1 is done)
 - [ ] Spec: `sandbox-runner`
 - [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts
@@ -56,13 +59,13 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 ## Phase 1: Base (Thu Nov 19 – Tue Nov 24)
 
 ### Core (`base/core`, pure, P0)
-- [ ] Event model types (`exec`, `file_read`, `file_write`, `connect`, `dns`, `http`, `exit`) (§5.1)
+- [x] Event model types (`exec`, `file_read`, `file_write`, `connect`, `dns`, `http`, `exit`) (§5.1)
 - [ ] Trace normaliser (raw syscall log to events, never throws)
-- [ ] Honeytoken matcher (raw, base64, double base64, hex, URL-encoded) (§5.4)
-- [ ] Rules R1–R10 (§5.5)
-- [ ] Verdict logic (MALICIOUS, SUSPICIOUS, SAFE, ERROR treated as blocked)
-- [ ] Verdict cache key includes the integrity hash (§5.6)
-- [ ] All core property-based tests from `testing.md` passing
+- [x] Honeytoken matcher (raw, base64 at any alignment, double base64, hex, URL-encoded) (§5.4)
+- [x] Rules R1–R10, plus R13 (incomplete trace) (§5.5)
+- [x] Verdict logic (MALICIOUS, SUSPICIOUS, SAFE, ERROR treated as blocked)
+- [x] Verdict cache key includes the integrity hash and ruleset version (§5.6)
+- [x] All core property-based tests from `testing.md` passing (14 properties, 5,000 runs × 3 seeds)
 
 ### Sandbox (`base/sandbox`, P0)
 - [ ] Sandbox Docker image (non-root, read-only root, tmpfs)
