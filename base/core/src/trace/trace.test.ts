@@ -246,6 +246,23 @@ describe("processes and phases", () => {
     });
   });
 
+  it("TN-1: text in an execve path can't change the working directory", () => {
+    const e = events(
+      trace([
+        clone(10, 11),
+        rec(11, "sh", ok("chdir(0xfd /tmp)")),
+        execve(11, "/opt/AT_FDCWD /evil", ["x"]),
+        execve(11, "mal", ["mal"]),
+        exitG(11),
+      ]),
+    );
+    expect(
+      e
+        .filter((x) => "pid" in x && x.pid === 11 && x.type === "exec")
+        .map((x) => ("path" in x ? x.path : "")),
+    ).toEqual(["/opt/AT_FDCWD /evil", "/tmp/mal"]);
+  });
+
   it("fails when the install or load step is missing", () => {
     expect(codeOf(clone(1, 10))).toBe("MISSING_PHASE");
   });

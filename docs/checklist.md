@@ -45,8 +45,9 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] Breach re-review (attacks invented without seeing our tests): **PASS**. 4 Low; credential list extended (ruleset 1.1.0), max-size timing test added (366 ms)
 - [x] Trace sample recorded (`docs/spikes/trace-sample.md`): the text log can be forged with a newline in a file name, so the JSON log format is used. Killed processes are found through `wait4`
 - [x] Spec: `trace-normaliser` written in `.kiro/specs/trace-normaliser/` (8 requirements, 8 properties, 10 tasks)
-- [ ] **You:** review the `trace-normaliser` spec, then approve or ask for changes
-- [ ] Implement the `trace-normaliser` tasks
+- [x] **You:** review the `trace-normaliser` spec (approved Nov 18)
+- [x] Implement the `trace-normaliser` tasks (all 10 done)
+- [x] Independent review (`sandbox-reviewer`): 1 High (TN-1, cwd spoofing) fixed; TN-2 (UDP to the sink) closed by a sandbox rule: UDP only on port 53
 - [ ] Spec: `sandbox-runner`
 - [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts
 - [x] TypeScript 7, Vitest 5, fast-check 4, and Biome 2.6 configured. Commands filled in `tech.md`
@@ -64,7 +65,7 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 
 ### Core (`base/core`, pure, P0)
 - [x] Event model types (`exec`, `file_read`, `file_write`, `connect`, `dns`, `http`, `exit`) (§5.1)
-- [ ] Trace normaliser (raw syscall log to events, never throws)
+- [x] Trace normaliser (gVisor JSON strace log to events, never throws, fails closed on any ambiguity)
 - [x] Honeytoken matcher (raw, base64 at any alignment, double base64, hex, URL-encoded) (§5.4)
 - [x] Rules R1–R10, plus R13 (incomplete trace) (§5.5)
 - [x] Verdict logic (MALICIOUS, SUSPICIOUS, SAFE, ERROR treated as blocked)

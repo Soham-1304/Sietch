@@ -204,15 +204,31 @@ function capArgv(argv: string[]): { argv: string[]; truncated: boolean } {
 const FAMILY = /^\{Family: (AF_INET6?), Addr: ([0-9a-fA-F:.]{1,64}), Port: (\d{1,5})\}/;
 
 /** Turn one parsed record into an action. Unsuccessful calls produce nothing, except connect. */
-/** Working directory gVisor printed with AT_FDCWD in this record, if any. */
+/** Syscalls whose FIRST argument is a dirfd that gVisor prints as "AT_FDCWD <cwd>". */
+const DIRFD_FIRST = new Set([
+  "openat",
+  "mkdirat",
+  "unlinkat",
+  "renameat",
+  "renameat2",
+  "linkat",
+  "fchmodat",
+  "execveat",
+]);
+
+/**
+ * The working directory gVisor printed for this record, or null. Only read from the leading dirfd
+ * of a syscall that has one: never from other arguments, which can hold attacker text such as an
+ * execve path "/opt/AT_FDCWD /evil" (review TN-1). Call this only after actionOf succeeded, so
+ * the split was already proved unambiguous.
+ */
 export function cwdOf(r: ParsedRecord): string | null {
-  if (r.kind !== "X" || r.ret === null || r.ret < 0) return null;
-  const at = r.args.indexOf("AT_FDCWD ");
-  if (at < 0) return null;
-  const seps = stringSeparators(r.args.slice(at));
-  if (seps.length === 0) return null;
-  const cwd = r.args.slice(at + 9, at + (seps[0] as { start: number }).start);
-  return cwd.startsWith("/") && countOf(r.args, "AT_FDCWD ") === 1 ? cwd : null;
+  if (r.kind !== "X" || r.ret === null || r.ret < 0 || !DIRFD_FIRST.has(r.syscall)) return null;
+  if (!r.args.startsWith("AT_FDCWD ")) return null;
+  const first = stringSeparators(r.args)[0];
+  if (first === undefined) return null;
+  const cwd = r.args.slice(9, first.start);
+  return cwd.startsWith("/") ? cwd : null;
 }
 
 export function actionOf(r: ParsedRecord, line: number): Action {

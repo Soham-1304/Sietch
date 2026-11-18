@@ -128,4 +128,6 @@ type NormaliseResult =
 
 1. **What gVisor prints for a cut-off path or argv** at `--strace-log-size`. Task 1 records it in the VM with a 4,096-byte path and a 600-argument argv.
 2. **The `clone3`, `sendto`, and `waitid` formats** (not seen on ARM64 with `sh` and `node`). Task 1 adds a C-free probe line if one is possible. Otherwise the parsers fail closed with `AMBIGUOUS_RECORD` until we see a sample.
+4. **`waitid` reaps are not exits yet** (review TN-3). A process reaped only that way looks lingering, so R10 can over-fire: safe, but noisy. It gets parsed once a real sample exists.
+5. **The working directory is read only from a leading `AT_FDCWD` dirfd** (review TN-1). It is never read from other arguments, which can hold attacker text.
 3. **The connect protocol.** The log doesn't show the socket type. Every case R3 cares about works with `"tcp"`: UDP and TCP port 53 to the sink are both allowed, and any other port is flagged either way. Tracing `socket` would remove this, later.

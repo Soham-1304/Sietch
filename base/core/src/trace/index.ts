@@ -85,9 +85,9 @@ function run(log: string, layout: RunnerLayout): NormaliseResult {
     const r = parseRecord(rec.body, rec.line);
     if (!traced.has(r.syscall)) throw new TraceFailure("UNEXPECTED_SYSCALL", rec.line);
     const self = proc(r.tgid);
+    const action = actionOf(r, rec.line); // throws on any ambiguous split, before cwd is read
     const cwd = cwdOf(r);
-    if (cwd !== null) self.cwd = cwd; // gVisor prints the real working directory with AT_FDCWD
-    const action = actionOf(r, rec.line);
+    if (cwd !== null) self.cwd = cwd; // the real working directory gVisor printed for this call
     const t = Math.max(0, rec.timeMs - firstTime); // t is informational; rules order by seq
     const emit = (pid: number, event: Body) => {
       const p = proc(pid);

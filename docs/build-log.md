@@ -119,6 +119,12 @@ Sections:
 - **Four Low findings.** The credential list was extended to cover keyrings, browser logins, wallets, and git's own credential file (ruleset 1.1.0). A timing test now covers the largest valid input (366 ms). Cache poisoning and a combination of three known limits are documented in the README as honest limits.
 - **A practical note:** the agent's final message is cut short in the parent, so the prompt asked it to send its report in numbered parts with `send_message`. All five parts arrived in full.
 
+### 2026-11-18 — trace-normaliser built and reviewed
+
+- **Recording a real trace before designing paid off:** gVisor's text log can be forged by a file name containing a newline, so the normaliser reads the JSON log instead. Processes killed by a signal never call `exit_group`, so `wait4` reaps are traced too. And Colima rewrites Docker's config on every start, so the runtimes now live in `colima.yaml`.
+- **Spec to code in one pass:** 10 tasks, 8 property tests, and a golden test against the real recorded trace. A file name with a newline comes through as exactly one event. End to end, trace to events to verdict, the probe's `~/.npmrc` read is R2.
+- **The fresh-session review found one High (TN-1):** text in an `execve` program path (`/opt/AT_FDCWD /evil`) could overwrite the tracked working directory and hide a dropped executable from R4. Fixed by reading the cwd only from a leading dirfd. TN-2 (UDP to the sink looks like HTTPS) was closed in the sandbox design (UDP only on 53).
+
 ## PBT findings
 
 - **2026-11-18, hosts, "never matches a look-alike" (seed 7):** counterexample `["a","a",true]`. The *test* was wrong: `a.a` is a real subdomain of `*.a`. The property was fixed to compute legitimacy rather than assume it.

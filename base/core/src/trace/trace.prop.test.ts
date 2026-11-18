@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { clone, exitG, LAYOUT, ok, openat, rec, trace } from "../__fixtures__/gvisor/records.js";
+import { clone, execve, exitG, LAYOUT, ok, openat, rec, trace } from "../__fixtures__/gvisor/records.js";
 import sample from "../__fixtures__/gvisor/sample-arm64.strace.jsonl?raw";
 import { validateScanInput } from "../schema.js";
 import { judge } from "../verdict.js";
@@ -145,6 +145,37 @@ describe("end to end: real trace -> events -> verdict", () => {
     const r = norm(sample);
     if (!r.ok) throw new Error(r.reason);
     expect(judge(scanInputFor(r.events, r.packageManagerPid)).kind).toBe("ERROR");
+  });
+
+  it("TN-1: a dropped file run by a relative path after a cwd-poisoning exec is still R4", () => {
+    const log = trace([
+      clone(10, 11),
+      rec(11, "sh", ok("chdir(0xfd /tmp)")),
+      openat(11, "/tmp", "mal", "O_WRONLY|O_CREAT"),
+      execve(11, "/opt/AT_FDCWD /lib/x", ["x"]),
+      execve(11, "mal", ["mal"]),
+      exitG(11),
+    ]);
+    const r = norm(log);
+    if (!r.ok) throw new Error(r.reason);
+    expect(judge(scanInputFor(r.events, r.packageManagerPid)).findings.map((f) => f.ruleId)).toContain("R4");
+  });
+
+  // TN-2: the trace can't tell UDP from TCP, so connects are labelled tcp. A UDP send to the sink on
+  // 443 is therefore treated like HTTPS. The sandbox closes this: the sink accepts UDP only on 53
+  // (sandbox-runner contract), so such a packet reaches nothing. This test pins today's verdict.
+  it("TN-2: a connect to the sink on 443 is allowed (safe only because the sink drops UDP other than DNS)", () => {
+    const r = norm(
+      trace([
+        rec(
+          10,
+          "node",
+          ok("connect(0x13 socket:[2], 0xfd {Family: AF_INET, Addr: 10.89.0.2, Port: 443}, 0x10)"),
+        ),
+      ]),
+    );
+    if (!r.ok) throw new Error(r.reason);
+    expect(judge(scanInputFor(r.events, r.packageManagerPid)).kind).toBe("SAFE");
   });
 
   it("without that record, the probe's read of ~/.npmrc is R2", () => {

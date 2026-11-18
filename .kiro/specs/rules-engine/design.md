@@ -272,6 +272,7 @@ The future `trace-normaliser` and `sandbox-runner` specs must guarantee these. T
 8. `bodyTruncated` is true whenever the capture sink cut a body short. R13 then flags it.
 9. Symlink and hard link creation is always emitted as a `file_write` event, so later paths can be resolved through it.
 10. The capture sink records DNS (53), HTTP (80), and HTTPS (443). Traffic to it on any other port is flagged by R3.
+11. The sink and the sandbox network accept **UDP only on port 53**, and drop all other UDP. The trace can't tell UDP from TCP, so a UDP send to 80 or 443 would otherwise look like recorded web traffic (trace-normaliser review TN-2).
 
 ## Changes after review (2026-11-18)
 
