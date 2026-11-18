@@ -106,6 +106,13 @@ Sections:
 - **The `host-guard` hook caught the agent once** during this work: a `cd base/core && …` combined with a subshell left the working directory unknown, so the guard blocked it. The command was rewritten with explicit paths.
 - **A lesson for the write-up:** tests written by the same author as the code check the cases that author thought of. The adversarial skills with a "confirm with a probe before you report" rule found what the tests didn't.
 
+### 2026-11-18 — Independent review in a fresh session (custom agent through a workflow)
+
+- Launched the `sandbox-reviewer` custom agent as a one-step workflow, so it had **no memory of how the code was written**. It loaded both skills, formed its own findings, and only then read the earlier reviews.
+- **It found what two same-session reviews missed: SR-7 (Medium, denial of service).** My SR-2 fix (resolving paths through symlinks) made a self-referential symlink plus long paths take minutes to judge. Its follow-up measured about 51 ms per long path whenever *any* symlink existed.
+- **The fix** was a cheaper walk (linked lists and a trie), work budgets per path and per trace, and a fast path for paths that miss every link. If a budget runs out, the result counts as incomplete: writes are forbidden and R13 reports it, so exhausting the budget can only make the verdict stricter. All the worst cases now run in about 1.3 s for 4,000 four-kilobyte paths.
+- **Lesson for the write-up:** fixing a bypass opened a DoS. A fresh-context reviewer is worth more than another pass by the author.
+
 ## PBT findings
 
 - **2026-11-18, hosts, "never matches a look-alike" (seed 7):** counterexample `["a","a",true]`. The *test* was wrong: `a.a` is a real subdomain of `*.a`. The property was fixed to compute legitimacy rather than assume it.

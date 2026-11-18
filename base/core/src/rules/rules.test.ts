@@ -434,6 +434,54 @@ describe("review regressions", () => {
     expect(only("R6", f).length).toBeGreaterThan(0);
   });
 
+  it("SR-7: a self-referential symlink plus long paths is judged quickly, and SUSPICIOUS", () => {
+    const deep = `/tmp/x/${"a/".repeat(1900)}f`; // close to the 4096-character path limit
+    const t = npmInstall((b) => {
+      script(b);
+      b.write(201, "symlink", "/tmp/x", "/tmp/x/x");
+      b.write(201, "symlink", "/tmp/y", "/tmp/x");
+      for (let i = 0; i < 400; i++) b.read(201, deep);
+      done(b);
+    });
+    const v = judge(t.build());
+    expect(v.kind).toBe("SUSPICIOUS");
+    expect(v.findings.map((f) => f.ruleId)).toContain("R13");
+  }, 5000);
+
+  // The independent review measured ~51 ms per long path once any symlink existed. With the fast
+  // path, paths that miss every link aren't walked at all.
+  it("SR-7: one unrelated symlink doesn't make long paths slow, and stays SAFE", () => {
+    const deep = `${NODE_MODULES}/${"a/".repeat(2000)}f`;
+    const t = npmInstall((b) => {
+      script(b);
+      b.write(201, "symlink", "/tmp/one-link", "/tmp/elsewhere");
+      for (let i = 0; i < 4000; i++) b.read(201, deep);
+      done(b);
+    });
+    expect(judge(t.build()).kind).toBe("SAFE");
+  }, 15_000);
+
+  it("SR-7: 10,000 chained symlinks and long paths are judged in bounded time", () => {
+    const t = npmInstall((b) => {
+      script(b);
+      for (let i = 0; i < 10_000; i++) b.write(201, "symlink", `/tmp/l${i}`, `/tmp/l${i + 1}`);
+      for (let i = 0; i < 2000; i++) b.read(201, `/tmp/l0/${"a/".repeat(2000)}f`);
+      done(b);
+    });
+    expect(judge(t.build()).kind).toBe("SUSPICIOUS");
+  }, 15_000);
+
+  it("SR-7: an incomplete resolution of a read is reported, so it can't hide a credential read", () => {
+    const f = fired((t) => {
+      script(t);
+      t.write(201, "symlink", "/tmp/x", "/tmp/y");
+      t.write(201, "symlink", "/tmp/y", "/tmp/x/z");
+      t.read(201, "/tmp/x/q");
+      done(t);
+    });
+    expect(only("R13", f)).toEqual(["R13:High"]);
+  });
+
   it("SR-3: connecting to the sink on a port it doesn't record is R3", () => {
     const f = fired((t) => {
       script(t);

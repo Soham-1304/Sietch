@@ -4,7 +4,7 @@
 
 import { type CompiledHoneytokens, compileHoneytokens } from "./honeytokens.js";
 import { type CompiledAllowlist, canonicalIp, compileAllowlist } from "./hosts.js";
-import { basename, isInside, joinPath, normalisePath, segments } from "./paths.js";
+import { hasPrefix, joinPath, normalisePath, segments } from "./paths.js";
 import type { Event, ScanInput } from "./schema.js";
 import { quote, redactToken } from "./text.js";
 import { LinkTable, type PathViews } from "./views.js";
@@ -132,15 +132,22 @@ export function buildContext(input: ScanInput): RuleContext {
     }
   }
 
+  // Roots are split once, and each path once per check, so long paths stay cheap (SR-7).
+  const credentialRootSegs = credentialRoots.map(segments);
+  const writeRootSegs = writeRoots.map(segments);
+  const nodeModulesSegs = segments(nodeModulesDir);
   const isCredentialPath = (path: string) => {
-    if (credentialRoots.some((root) => isInside(path, root))) return true;
     const segs = segments(path);
+    if (credentialRootSegs.some((root) => hasPrefix(segs, root))) return true;
     const last = segs[segs.length - 1] ?? "";
     if (segs[0] === "proc" && segs.length >= 3 && (last === "environ" || last === "mem")) return true;
-    return DOT_ENV.test(basename(path)) && !isInside(path, nodeModulesDir);
+    return DOT_ENV.test(last) && !hasPrefix(segs, nodeModulesSegs);
   };
-  const isAllowedPath = (path: string) =>
-    harmless.has(path) || writeRoots.some((root) => isInside(path, root));
+  const isAllowedPath = (path: string) => {
+    if (harmless.has(path)) return true;
+    const segs = segments(path);
+    return writeRootSegs.some((root) => hasPrefix(segs, root));
+  };
   const tokenValues = [...input.honeytokens].map((t) => t.value).sort((a, b) => b.length - a.length);
 
   return {

@@ -9,6 +9,17 @@ export const r13TruncatedTrace: Rule = {
   title: "Part of the trace is missing",
   evaluate(ctx) {
     const g = new Grouper();
+    for (const event of ctx.events) {
+      const v = ctx.viewsOf(event);
+      if (v.path?.complete === false || v.target?.complete === false) {
+        g.add(
+          "resolution",
+          "High",
+          "Some paths couldn't be fully resolved through the symlinks the package created (a loop, a long chain, or too many links), so where they really point wasn't checked.",
+          event.seq,
+        );
+      }
+    }
     if (ctx.input.eventsTruncated) {
       g.add(
         "events",

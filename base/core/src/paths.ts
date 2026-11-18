@@ -34,6 +34,15 @@ export function isInside(child: string, root: string): boolean {
   return true;
 }
 
+/** isInside for paths already split into segments (so long paths are split only once). */
+export function hasPrefix(child: readonly string[], root: readonly string[]): boolean {
+  if (root.length > child.length) return false;
+  for (let i = 0; i < root.length; i++) {
+    if (child[i] !== root[i]) return false;
+  }
+  return true;
+}
+
 /** The last segment, or "" for the root. Also works on relative strings such as argv entries. */
 export function basename(path: string): string {
   const parts = path.split("/").filter((p) => p !== "");

@@ -54,3 +54,15 @@ Each finding was confirmed with a probe test that ran the trace through `judge()
 | SR-4 | Fixed: `MAX_HONEYTOKENS = 16`, `MAX_TOTAL_SCANNED_TEXT = 24 MiB`. Test in `schema.test.ts`. |
 | SR-5 | Fixed: environment refinements. Tests in `schema.test.ts`. |
 | SR-6 | Fixed: `Map`. Test in `rules/rules.test.ts`. |
+
+## Independent review (new session, `sandbox-reviewer` agent, 2026-11-18)
+
+A second review, run in a separate session with fresh context, gave **FAIL on one Medium finding**. It found no wrong-SAFE verdict, and it confirmed that the fixes for SR-1, SR-2, SR-3, SR-5, SR-6, and the blue-team cards are correct.
+
+| ID | Severity | Location | Class | Trigger | Impact | Fix |
+|---|---|---|---|---|---|---|
+| SR-7 | Medium | `views.ts` (introduced by the SR-2 fix) | Resource exhaustion | A self-referential symlink (`/tmp/x -> /tmp/x/x`) plus many reads of ~4 KB paths through it took **minutes**. Follow-up: with *any* symlink in the trace, every long path cost about 51 ms. | One package could tie up a scan worker. Both earlier reviews missed it. | (1) Walk with persistent linked lists and a link-name trie, so no step copies data. (2) A per-path work budget and a budget shared by the whole trace. (3) A fast path: a path with no `.`/`..` and no link prefix isn't walked at all. (4) Roots split once, and each path split once per check. When a budget runs out, the views are incomplete: writes through them are forbidden, and **R13 reports it** (High), so running out can't help a package. |
+
+**After the fix** (4,000 reads of ~4 KB paths): one unrelated link took 1.36 s (SAFE), a self-link 1.30 s, `..`-heavy paths 1.08 s, and 10,000 chained links 1.33 s (all three SUSPICIOUS through R13). Regression tests: "review regressions" in `rules/rules.test.ts`, with timeouts.
+
+Lesson: the SR-2 fix closed a bypass and opened a denial of service. A reviewer with fresh context caught what the fixing author couldn't see.
