@@ -43,7 +43,10 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] `/blue-team` pass: 11 new threat cards, 1 more bypass fixed (truncated bodies), 2 open items moved to later specs
 - [x] Independent review in a new session (`sandbox-reviewer`): no wrong-SAFE verdicts; 1 Medium (SR-7, slow path walk) found and fixed
 - [x] Breach re-review (attacks invented without seeing our tests): **PASS**. 4 Low; credential list extended (ruleset 1.1.0), max-size timing test added (366 ms)
-- [ ] Spec: `trace-normaliser` (gVisor strace lines to events; possible now that Spike 1 is done)
+- [x] Trace sample recorded (`docs/spikes/trace-sample.md`): the text log can be forged with a newline in a file name, so the JSON log format is used. Killed processes are found through `wait4`
+- [x] Spec: `trace-normaliser` written in `.kiro/specs/trace-normaliser/` (8 requirements, 8 properties, 10 tasks)
+- [ ] **You:** review the `trace-normaliser` spec, then approve or ask for changes
+- [ ] Implement the `trace-normaliser` tasks
 - [ ] Spec: `sandbox-runner`
 - [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts
 - [x] TypeScript 7, Vitest 5, fast-check 4, and Biome 2.6 configured. Commands filled in `tech.md`
