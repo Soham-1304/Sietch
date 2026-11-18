@@ -31,6 +31,7 @@ These rules keep the base reusable, which is the whole point of the Skeleton Cre
 2. **Only `base/sandbox` talks to Docker.**
 3. **Only `base/server` talks to MongoDB and Redis.**
 4. **Apps depend on the base. The base never imports from an app.**
+4a. **`demo/` is never a workspace package.** `pnpm install` runs workspace packages' own lifecycle scripts, so adding `demo/*` to `pnpm-workspace.yaml` would run the worm lookalike on the host.
 5. **The two apps never import from each other.** Shared needs move into the base.
 6. Apps talk to the server over its HTTP API, or through `base/core` types. They don't reach into server internals.
 

@@ -56,7 +56,17 @@ Any change to these needs a review by the `sandbox-reviewer` agent and a note in
 - **Never run `npm publish` locally.** Packages are published only from GitHub Actions, with trusted publishing and provenance.
 - Our packages have no install scripts.
 
-## 8. Hosting VM
+## 8. Writing and reviewing security-relevant code
+
+- **Fail closed everywhere on a security path.** An error, timeout, missing tool, missing config, unknown type, or unparsable input ends in block, with a visible reason. A fallback that allows is only acceptable under the three conditions in `.kiro/skills/security-review/references/fail-closed.md`, and it needs a comment saying why.
+- **No shells with untrusted data.** Use `spawn` or `execFile` with an argument array. Never build command strings.
+- **Validate at every boundary** with zod `.strict()` schemas, and check sizes before parsing.
+- **Escape untrusted text** before printing it to a terminal, a log, or the dashboard.
+- **Before committing** code that touches untrusted input, processes, Docker, files, tarballs, the network, HTTP, hooks, the CLI, the dashboard, or verdicts: run the **`security-review`** skill (`/security-review`) and fix every Critical, High, and Medium finding.
+- **When designing or changing** the sandbox, capture sink, honeytokens, recording, rules, or verdicts: run the **`blue-team`** skill (`/blue-team`) and turn its threat cards into tests and fixtures.
+- Prefer a reviewer with fresh context: run the review in a new session, or use the `sandbox-reviewer` agent.
+
+## 9. Hosting VM
 
 - No cloud service account or IAM role attached to the VM.
 - Block the metadata server from all Docker networks.

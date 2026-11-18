@@ -39,6 +39,15 @@ Include hand-written fixtures: a worm-like event sequence (reads ~/.npmrc, spawn
 
 ---
 
-## 2. sandbox-runner (`base/sandbox`)
+**Status:** the spec was written on 2026-11-18 in `.kiro/specs/rules-engine/`, from this prompt.
 
-Start this one after Spike 1. Its design depends on how we record process behaviour. The prompt is added once Spike 1 is decided.
+---
+
+## 2. trace-normaliser (`base/core`) and sandbox-runner (`base/sandbox`)
+
+Spike 1 is done (`docs/spikes/spike-1-recording.md`). Both specs follow from it:
+
+- **trace-normaliser:** parse gVisor `--strace` text lines into the rules-engine's `Event` model, following the "Contract for the trace producer" in `.kiro/specs/rules-engine/design.md`. Any line it can't parse is an error.
+- **sandbox-runner:** fetch, the honeytoken generator, the capture sink, and the per-architecture syscall list. It runs install, then load, then a 60 s observation window, and cleans up the raw logs.
+
+Both are written after the rules-engine spec has been reviewed.

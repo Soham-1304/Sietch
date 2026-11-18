@@ -26,21 +26,30 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] **Spike 3:** `host-guard` blocks in the IDE. Confirmed: Kiro blocked the command and passed the reason to the agent
 - [x] Node 24 LTS installed through nvm (v24.22.3). pnpm 12.21.0 through corepack
 - [ ] **You (optional):** make Node 24 your default with `nvm alias default 24`. Otherwise run `nvm use` in this folder
-- [ ] **You:** create a **public** GitHub repo, then push the first commit
+- [x] Public GitHub repo created and pushed: https://github.com/Soham-1304/Sietch
+- [x] Skills: `security-review` and `blue-team`. `sandbox-reviewer` loads both
+- [x] Security review of the hooks: 3 High, 1 Medium, 2 Low found and fixed. host-guard rebuilt on a strict parser, fail closed
+- [x] Hook test suite in the repo: 255 tests, including property tests
+- [ ] **You:** run `/security-review` on the hooks in a **new session**, as an independent second review
+- [x] Prompt event format confirmed (`prompt` field on stdin, matching what `secret-guard` reads). Probe removed
 - [ ] Repo About section shows "Apache-2.0" (GitHub detects it automatically)
 
 ## Phase 0b: Specs and scaffolding (Wed Nov 18)
 
-- [ ] Spec: `rules-engine` (requirements, design, tasks)
-- [ ] Spec: `sandbox-runner` (after Spike 1)
+- [x] Spec: `rules-engine` written in `.kiro/specs/rules-engine/` (20 requirements, 14 correctness properties, 12 tasks)
+- [x] **You:** review the `rules-engine` requirements and design, then approve or ask for changes (approved Nov 18)
+- [ ] Implement the `rules-engine` tasks (`tasks.md`, one at a time)
+- [ ] Spec: `trace-normaliser` (gVisor strace lines to events; possible now that Spike 1 is done)
+- [ ] Spec: `sandbox-runner`
 - [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts
 - [x] TypeScript 7, Vitest 5, fast-check 4, and Biome 2.6 configured. Commands filled in `tech.md`
 - [x] pnpm supply-chain settings: 1-day minimum release age, trust no-downgrade, strict install scripts
 - [x] `base/core` purity enforced: no Node types, and restricted globals in Biome
 - [x] Hook: `check-on-save` typechecks the package and runs related tests (including rule fixtures) when a `base/` or `apps/` TypeScript file is saved
 - [x] Spec prompts written in `docs/spec-prompts.md`
-- [ ] **You:** run the `rules-engine` spec in a Spec session (prompt in `docs/spec-prompts.md`)
-- [ ] **Spike 1** (§5.2): can we see a detached child process's file reads and network connections from outside the sandbox? Run locally in Docker Desktop first. Confirm on the VM later.
+- [x] Colima VM `sietch` with gVisor `release-20261116.0` (no Mac folders shared; Docker Desktop stays the default)
+- [x] **Spike 1** (§5.2): **passed.** gVisor `--strace` records a detached child's reads, exec, and connect after the parent exits, and the package can't reach the recorder. Details: `docs/spikes/spike-1-recording.md`
+- [ ] Confirm Spike 1 on an x86-64 VM later (different syscall list)
 - [ ] **Spike 2** (§6.1): can Verdaccio plugins hide versions, block tarball downloads, and hold a request while a scan runs?
 - [ ] **Checkpoint G1:** spike results written in the build log
 

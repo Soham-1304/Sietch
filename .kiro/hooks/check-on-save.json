@@ -8,7 +8,7 @@
       "matcher": "(^|/)(base|apps)/.+\\.tsx?$",
       "action": {
         "type": "command",
-        "command": "/bin/sh .kiro/hooks/scripts/run-node.sh open .kiro/hooks/scripts/check-on-save.mjs {{filePath}}"
+        "command": "/bin/sh .kiro/hooks/scripts/run-node.sh open .kiro/hooks/scripts/check-on-save.mjs"
       },
       "timeout": 120
     }

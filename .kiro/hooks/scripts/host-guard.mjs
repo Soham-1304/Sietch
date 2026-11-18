@@ -1,85 +1,65 @@
 #!/usr/bin/env node
-// Kiro Pre Tool Use hook for shell commands.
-// Blocks commands that break .kiro/steering/security.md on the developer's machine.
+// Kiro Pre Tool Use hook for shell commands. Fails closed.
 //
-// Contract (Kiro hooks v1): JSON event on stdin, with the command in tool_input.command.
-// Exit 0 allows the command. Exit 2 blocks it, and stderr is returned to the agent.
-// If the event can't be read, the command is allowed: this is a guard rail for development,
-// not a security boundary. The sandbox is the security boundary.
+// Exit 0: allow. Exit 2: block, and stderr is returned to the agent.
+// Every unexpected condition (bad event, missing command, parse failure, internal error) blocks.
+// The policy itself is in lib/host-policy.mjs. Known gaps are listed in .kiro/hooks/README.md.
 
-import { readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
+import { isAbsolute, join, resolve } from "node:path";
+import { HookInputError, readEvent, safeText } from "./lib/hook-io.mjs";
+import { analyse, Blocked, makeContext } from "./lib/host-policy.mjs";
 
-/** @returns {string} the shell command from the hook event, or "" */
-function readCommand() {
-  let raw = "";
-  try {
-    raw = readFileSync(0, "utf8");
-  } catch {
-    return "";
-  }
-  try {
-    const event = JSON.parse(raw);
-    const input = event.tool_input ?? event.toolArgs ?? {};
-    if (typeof input === "string") return input;
-    return String(input.command ?? input.cmd ?? "");
-  } catch {
-    return "";
-  }
-}
-
-const runsInsideDocker = (c) => /\bdocker\s+(run|exec|compose)\b/.test(c);
-
-/** Each rule: id, test(command) => boolean, reason shown to the agent. */
-const RULES = [
-  {
-    id: "no-local-publish",
-    test: (c) => /\b(npm|pnpm|yarn)\s+(publish|unpublish)\b/.test(c) && !/--dry-run\b/.test(c),
-    reason:
-      "Packages are published only from GitHub Actions with trusted publishing and provenance (security.md section 7). Use --dry-run to check a package locally.",
-  },
-  {
-    id: "no-unsafe-docker",
-    test: (c) =>
-      /\bdocker\s+(run|create)\b/.test(c) &&
-      /(--privileged\b|--net(work)?[ =]host\b|(-v|--volume)[ =]\/:|\/var\/run\/docker\.sock|--cap-add[ =](ALL|SYS_ADMIN)\b)/.test(
-        c,
-      ),
-    reason:
-      "This container would get host-level access (privileged mode, host network, a root mount, or the Docker socket). Sandbox containers must follow security.md section 2.",
-  },
-  {
-    id: "no-pipe-to-shell",
-    test: (c) => /\b(curl|wget)\b[^|]*\|\s*(sudo\s+)?(ba|z|da)?sh\b/.test(c),
-    reason:
-      "Piping a download straight into a shell runs unreviewed code on the host. Download the script, read it, then run it.",
-  },
-  {
-    id: "no-malware-corpus-on-mac",
-    test: (c) =>
-      process.platform === "darwin" && /malicious-software-packages-dataset|malware[-_]?samples/i.test(c),
-    reason:
-      "Real malware samples never go on the Mac (security.md section 1). Use them only on the cloud VM, inside the sandbox.",
-  },
-  {
-    id: "no-demo-packages-on-host",
-    test: (c) =>
-      !runsInsideDocker(c) &&
-      (/\b(node|bun|deno|tsx)\s+(\S*\/)?demo\/\S+/.test(c) ||
-        /\b(npm|pnpm|yarn)\s+(i|install|add|ci|rebuild|run|exec)\b.*(@sietch-demo\/|(^|\s|\/)demo\/)/.test(
-          c,
-        ) ||
-        /\bnpx\s+.*@sietch-demo\//.test(c) ||
-        /\bcd\s+\S*demo\/\S*\s*(&&|;)\s*(npm|pnpm|yarn|node|npx|bun)\b/.test(c)),
-    reason:
-      "Demo packages (including the worm lookalike) may only run inside Docker, never directly on the host (security.md sections 1 and 6).",
-  },
-];
-
-const command = readCommand();
-const hit = command ? RULES.find((rule) => rule.test(command)) : undefined;
-
-if (hit) {
-  process.stderr.write(`Blocked by host-guard [${hit.id}]: ${hit.reason}\n`);
+function deny(rule, reason) {
+  process.stderr.write(`Blocked by host-guard [${rule}]: ${safeText(reason)}\n`);
   process.exit(2);
 }
-process.exit(0);
+
+function main() {
+  const repoRoot = process.cwd();
+  if (!existsSync(join(repoRoot, ".kiro", "hooks"))) {
+    deny(
+      "bad-environment",
+      "host-guard isn't running from the project root, so it can't apply the project's rules.",
+    );
+  }
+
+  let event;
+  try {
+    event = readEvent();
+  } catch (error) {
+    if (error instanceof HookInputError)
+      deny("bad-event", `${error.message}, so host-guard can't check the command.`);
+    throw error;
+  }
+  if (event.hook_event_name !== "PreToolUse") deny("bad-event", "host-guard expected a PreToolUse event.");
+  const input = event.tool_input;
+  if (input === null || typeof input !== "object" || typeof input.command !== "string") {
+    deny("bad-event", "the tool call has no command string, so host-guard can't check it.");
+  }
+
+  let cwd = repoRoot;
+  if (input.cwd !== undefined && input.cwd !== null) {
+    if (typeof input.cwd !== "string" || input.cwd.length === 0)
+      deny("bad-event", "the tool call's working directory isn't a path.");
+    cwd = isAbsolute(input.cwd) ? resolve(input.cwd) : resolve(repoRoot, input.cwd);
+  }
+
+  const ctx = makeContext({ repoRoot, cwd, home: process.env.HOME, platform: process.platform });
+  try {
+    analyse(input.command, ctx);
+  } catch (error) {
+    if (error instanceof Blocked) deny(error.rule, error.message);
+    deny(
+      "internal-error",
+      `host-guard hit an internal error (${error instanceof Error ? error.name : "unknown"}), so it's blocking to be safe.`,
+    );
+  }
+  process.exit(0);
+}
+
+try {
+  main();
+} catch {
+  deny("internal-error", "host-guard failed unexpectedly, so it's blocking to be safe.");
+}
