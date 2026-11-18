@@ -9,7 +9,7 @@ import { validateScanInput } from "./schema.js";
 import { quote } from "./text.js";
 
 /** Bump whenever any rule's behaviour changes. Verdicts from other versions are never reused. */
-export const RULESET_VERSION = "1.0.0";
+export const RULESET_VERSION = "1.1.0"; // 1.1.0: R2 covers keyrings, browser and wallet stores (BT-R2-2)
 
 export type VerdictKind = "SAFE" | "SUSPICIOUS" | "MALICIOUS" | "ERROR";
 

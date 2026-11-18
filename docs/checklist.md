@@ -42,6 +42,7 @@ This is the task tracker. Tick items as they are done. The reasoning behind each
 - [x] `/security-review` of the rules engine: 2 High, 2 Medium, 2 Low found and fixed (`docs/reviews/`)
 - [x] `/blue-team` pass: 11 new threat cards, 1 more bypass fixed (truncated bodies), 2 open items moved to later specs
 - [x] Independent review in a new session (`sandbox-reviewer`): no wrong-SAFE verdicts; 1 Medium (SR-7, slow path walk) found and fixed
+- [x] Breach re-review (attacks invented without seeing our tests): **PASS**. 4 Low; credential list extended (ruleset 1.1.0), max-size timing test added (366 ms)
 - [ ] Spec: `trace-normaliser` (gVisor strace lines to events; possible now that Spike 1 is done)
 - [ ] Spec: `sandbox-runner`
 - [x] pnpm workspace scaffold with `base/core` as the template package. Other packages are created when their spec starts

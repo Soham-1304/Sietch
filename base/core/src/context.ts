@@ -27,6 +27,19 @@ export const HOME_CREDENTIAL_ENTRIES = [
   ".pypirc",
   ".bash_history",
   ".zsh_history",
+  // Added after the breach re-review (BT-R2-2): stores that info-stealers commonly read.
+  ".config/git/credentials",
+  ".local/share/keyrings",
+  ".password-store",
+  ".config/google-chrome",
+  ".config/chromium",
+  ".config/BraveSoftware",
+  ".mozilla",
+  ".electrum",
+  ".bitcoin",
+  ".ethereum",
+  ".config/solana",
+  ".config/Exodus",
 ] as const;
 
 /** Home-relative directories a package may write to (caches). */

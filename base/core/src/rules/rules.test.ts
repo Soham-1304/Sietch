@@ -85,6 +85,19 @@ describe("R2 credential access", () => {
     expect(only("R2", f)).toHaveLength(4);
   });
 
+  it("covers keyrings, git credentials, browser logins, and wallets (BT-R2-2)", () => {
+    const f = fired((t) => {
+      script(t);
+      t.read(201, `${HOME}/.config/git/credentials`);
+      t.read(201, `${HOME}/.local/share/keyrings/login.keyring`);
+      t.read(201, `${HOME}/.config/google-chrome/Default/Login Data`);
+      t.read(201, `${HOME}/.mozilla/firefox/abc.default/logins.json`);
+      t.read(201, `${HOME}/.ethereum/keystore/UTC--x`);
+      done(t);
+    });
+    expect(only("R2", f)).toHaveLength(5);
+  });
+
   it("ignores npm reading its own config, and a package reading its own .env", () => {
     const f = fired((t) => {
       script(t);

@@ -113,6 +113,12 @@ Sections:
 - **The fix** was a cheaper walk (linked lists and a trie), work budgets per path and per trace, and a fast path for paths that miss every link. If a budget runs out, the result counts as incomplete: writes are forbidden and R13 reports it, so exhausting the budget can only make the verdict stricter. All the worst cases now run in about 1.3 s for 4,000 four-kilobyte paths.
 - **Lesson for the write-up:** fixing a bypass opened a DoS. A fresh-context reviewer is worth more than another pass by the author.
 
+### 2026-11-18 — Breach re-review: PASS
+
+- A third review in a fresh session, told to **invent attacks before looking at our tests** so it wouldn't be anchored on them. Verdict **PASS**: no new wrong-SAFE path, and every earlier fix was confirmed.
+- **Four Low findings.** The credential list was extended to cover keyrings, browser logins, wallets, and git's own credential file (ruleset 1.1.0). A timing test now covers the largest valid input (366 ms). Cache poisoning and a combination of three known limits are documented in the README as honest limits.
+- **A practical note:** the agent's final message is cut short in the parent, so the prompt asked it to send its report in numbered parts with `send_message`. All five parts arrived in full.
+
 ## PBT findings
 
 - **2026-11-18, hosts, "never matches a look-alike" (seed 7):** counterexample `["a","a",true]`. The *test* was wrong: `a.a` is a real subdomain of `*.a`. The property was fixed to compute legitimacy rather than assume it.

@@ -119,6 +119,24 @@ describe("caps", () => {
     expect(v.omittedFindings).toBe(5);
   });
 
+  // BT-R2-3: the largest valid input (16 honeytokens, ~24 MiB of traffic text) took 366 ms when
+  // measured on 2026-11-18. The timeout catches a regression long before it could tie up a worker.
+  it("judges the largest valid input quickly", () => {
+    const base = npmInstall((t) => {
+      t.exec(201, 100, "/bin/sh", ["sh"]);
+      for (let i = 0; i < 16; i++) t.http("POST", "x.invalid", "/", "Q".repeat(1024 * 1024 - 64));
+      const headers: [string, string][] = Array.from({ length: 100 }, (_, h) => [`h${h}`, "Z".repeat(8000)]);
+      for (let i = 0; i < 10; i++) t.http("POST", "x.invalid", "/", "", headers);
+      t.exit(201, 0, 100);
+    }).build();
+    const honeytokens = Array.from({ length: 16 }, (_, n) => ({
+      id: `t${n}`,
+      kind: "generic" as const,
+      value: `tok${n}_${"k".repeat(40)}${n}`,
+    }));
+    expect(judge({ ...base, honeytokens }).kind).toBe("SUSPICIOUS");
+  }, 5000);
+
   it("caps evidence at 20 per finding", () => {
     const v = judge(shaiHulud2Scenario());
     for (const f of v.findings) expect(f.evidence.length).toBeLessThanOrEqual(20);

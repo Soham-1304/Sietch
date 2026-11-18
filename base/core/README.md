@@ -71,5 +71,9 @@ Sietch doesn't claim to catch everything. These gaps are known and accepted for 
 - Tokens encoded in other ways (base32, XOR, compressed, split across requests). R1 misses them, but R2 and R3 usually still fire.
 - Data other than our fake credentials sent to an allowlisted host.
 - Tampering with other packages inside `node_modules` (rule R14 is planned).
+- Writes into the npm, node-gyp, and general caches (`~/.npm`, `~/.node-gyp`, `~/.cache`) are allowed, because normal installs write there constantly. A package could poison the npm cache for a later install, and it wouldn't be flagged.
+- Reading an environment variable leaves no file event, so R2 can't see it. R1 still catches the token when it's sent out in a supported encoding.
 
-Details: `docs/reviews/2026-11-18-rules-engine-blue-team.md`.
+**A worked example of what gets through.** Each step below is one of the limits above, and together nothing fires: read a fake token from an environment variable (no event), encode it as base32 (R1 doesn't decode it), and send it as a DNS lookup under an allowlisted wildcard host such as `<data>.objects.githubusercontent.com` (R3 allows it). Keeping the allowlist short, and preferring exact hosts to `*.` wildcards, narrows this path.
+
+Details: `docs/reviews/2026-11-18-rules-engine-blue-team.md` and `docs/reviews/2026-11-18-rules-engine-breach-review.md`.
