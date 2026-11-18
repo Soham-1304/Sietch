@@ -27,7 +27,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/vitest.config.ts"],
+      "includes": ["**/vitest.config.ts", "**/__fixtures__/raw.d.ts"],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
     },
     {

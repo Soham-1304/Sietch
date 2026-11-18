@@ -82,6 +82,8 @@ const execEvent = z.strictObject({
   ...processFields,
   path: absolutePath,
   argv: z.array(text(MAX_ARG)).max(MAX_ARGV),
+  /** The recorder cut the argument list short, so part of the command wasn't seen (R13). */
+  argvTruncated: z.boolean().optional(),
 });
 const fileReadEvent = z.strictObject({
   type: z.literal("file_read"),
@@ -102,11 +104,13 @@ const connectEvent = z.strictObject({
   ...common,
   ...processFields,
   protocol: z.enum(["tcp", "udp"]),
+  /** null: data was sent somewhere the recorder didn't show (UDP sendmsg). R3 treats it as external. */
   address: z
     .string()
     .min(1)
     .max(MAX_ADDRESS)
-    .regex(/^[0-9A-Fa-f:.]+$/),
+    .regex(/^[0-9A-Fa-f:.]+$/)
+    .nullable(),
   port: z.int().min(0).max(65535),
 });
 const exitEvent = z.strictObject({

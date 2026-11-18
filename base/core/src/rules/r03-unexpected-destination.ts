@@ -25,6 +25,15 @@ export const r03UnexpectedDestination: Rule = {
           event.seq,
         );
       } else if (event.type === "connect") {
+        if (event.address === null) {
+          g.add(
+            "ip:unrecorded",
+            "High",
+            `Sent ${event.protocol} data to an address the recorder couldn't see, so where it went is unknown.`,
+            event.seq,
+          );
+          continue;
+        }
         const ip = canonicalIp(event.address);
         if (ip !== null && isLoopback(ip)) continue;
         if (ip !== null && ctx.sinkAddresses.has(ip)) {

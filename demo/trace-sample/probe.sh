@@ -27,6 +27,10 @@ touch "$(printf 'nl\nname')" 'quo"te' 'back\slash' 'caf\303\251'
 long=/tmp/$(printf 'a%.0s' $(seq 1 200))
 mkdir -p "$long" && echo x > "$long/f"
 
+# A change of directory, then a relative exec.
+printf '#!/bin/sh\necho rel\n' > /tmp/sub/rel.sh && chmod 755 /tmp/sub/rel.sh
+(cd /tmp/sub && ./rel.sh > /dev/null)
+
 # Processes: a failed exec, a background child, and a child killed by a signal.
 /does/not/exist 2>/dev/null
 sh -c 'sleep 0.2; echo bg > /tmp/bg.txt' &

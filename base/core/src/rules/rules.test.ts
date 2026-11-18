@@ -518,6 +518,34 @@ describe("review regressions", () => {
   });
 });
 
+describe("normaliser support (ruleset 1.2.0)", () => {
+  it("R3 flags a send to an address the recorder couldn't see", () => {
+    const f = fired((t) => {
+      script(t);
+      t.add({ type: "connect", pid: 201, ppid: 1, protocol: "udp", address: null, port: 4444 });
+      done(t);
+    });
+    expect(only("R3", f)).toEqual(["R3:High"]);
+  });
+
+  it("R13 flags an exec whose argument list was cut off", () => {
+    const f = fired((t) => {
+      script(t);
+      t.add({
+        type: "exec",
+        pid: 202,
+        ppid: 201,
+        path: "/usr/local/bin/npm",
+        argv: ["npm", "--x"],
+        argvTruncated: true,
+      });
+      t.exit(202, 0, 201);
+      done(t);
+    });
+    expect(only("R13", f)).toEqual(["R13:High"]);
+  });
+});
+
 describe("R13 incomplete trace", () => {
   it("fires when the trace was cut off", () => {
     const v = judge({ ...npmInstall(() => {}).build(), eventsTruncated: true });

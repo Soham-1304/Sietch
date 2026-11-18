@@ -20,7 +20,13 @@
 
 gVisor can also stream structured protobuf events, including exits, parents, and the working directory, to a monitoring process over a Unix socket. That is the most robust source. But the socket is `SOCK_SEQPACKET`, which Node.js doesn't support, so we'd need a non-TypeScript helper. That breaks `tech.md` and costs days we don't have. The JSON strace log gives safe framing today. Runtime monitoring stays the upgrade path.
 
-## Still to check (spec tasks)
+## Limits (probe part 2, `demo/trace-sample/probe-limits.sh`)
 
-- What gVisor prints when a path or `argv` is longer than `--strace-log-size`, and whether it's marked as cut off.
+- **A 3,957-character path is printed in full.** `--strace-log-size=512` limits data buffers, not path strings.
+- **An `execve` with 600 arguments is printed in full**, with the whole environment after it. So the normaliser itself caps argv at the engine's limit (256 entries, 8,192 characters each) and sets `argvTruncated` when it does.
+- **A UDP send to `192.0.2.10:4444` uses `sendmsg`**, shown as `{name=0x…, namelen=16, iovecs=…}`. The destination isn't printed, so it becomes a `connect` with an unknown address.
+
+## Still to check
+
 - The x86-64 syscall list on the cloud VM.
+- The `sendto` and `waitid` formats (not used by `sh` or `node` here). Their parsers fail closed.

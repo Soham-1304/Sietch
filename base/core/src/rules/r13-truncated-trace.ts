@@ -20,6 +20,16 @@ export const r13TruncatedTrace: Rule = {
         );
       }
     }
+    for (const event of ctx.events) {
+      if (event.type === "exec" && event.argvTruncated === true) {
+        g.add(
+          "argv",
+          "High",
+          `The argument list of ${ctx.show(event.path)} was cut off, so part of the command wasn't checked.`,
+          event.seq,
+        );
+      }
+    }
     if (ctx.input.eventsTruncated) {
       g.add(
         "events",
